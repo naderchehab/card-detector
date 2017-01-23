@@ -15,11 +15,13 @@ def getMatches(image, template, threshold):
 # Highlight regions of interest in an image
 def highlightRois(image, roisCoords, roiWidthHeight):
     rois = []
-    for roiTopLeft in roisCoords:
+    for roiCoord in roisCoords:
+        roiTopLeft = roiCoord['topLeft']
+        name = roiCoord['name']
         # extract the regions of interest from the image
         roiBottomRight = tuple([sum(x) for x in zip(roiTopLeft, roiWidthHeight)])
         roi = image[roiTopLeft[1]:roiBottomRight[1], roiTopLeft[0]:roiBottomRight[0]]
-        rois.append({'topLeft': roiTopLeft, 'bottomRight': roiBottomRight, 'area': roi})
+        rois.append({'topLeft': roiTopLeft, 'bottomRight': roiBottomRight, 'area': roi, 'name': name})
 
     # construct a darkened transparent 'layer' to darken everything
     # in the image except for the regions of interest
@@ -29,5 +31,6 @@ def highlightRois(image, roisCoords, roiWidthHeight):
     # put the original rois back in the image so that they look 'brighter'
     for roi in rois:
         image[roi['topLeft'][1]:roi['bottomRight'][1], roi['topLeft'][0]:roi['bottomRight'][0]] = roi['area']
+        cv2.putText(image, roi['name'][0], roi['topLeft'], cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
         
     return image

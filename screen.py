@@ -25,9 +25,16 @@ def showCards(cardNames, valuesDict, suitsDict):
         suit = split[1]
         valueImg = valuesDict[value]
         suitImg = suitsDict[suit]
-        cardImg = np.concatenate([valueImg, suitImg])
-        topLeft = (0L, index)
-        bottomRight = (cardImg.shape[0], index + cardImg.shape[1])
-        played[topLeft[0]:bottomRight[0], topLeft[1]:bottomRight[1]] = cardImg
-        index = index + cardImg.shape[1];
+        
+        # value
+        topLeft = (index, 0L)
+        bottomRight = (index + valueImg.shape[1], valueImg.shape[0])
+        played[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]] = valueImg
+        
+        # suit
+        topLeft = (topLeft[0], bottomRight[1])
+        bottomRight = (topLeft[0] + suitImg.shape[1], topLeft[1] + suitImg.shape[0])
+        played[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]] = suitImg
+        
+        index = index + valueImg.shape[1];
     showImage(played)

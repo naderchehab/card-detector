@@ -26,7 +26,7 @@ values = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'
 
 # for testing
 # suits = ['spade']
-# values = ['nine']
+# values = ['queen']
 
 def getImage(name):
     filename = name + '.png';
@@ -46,22 +46,34 @@ allMatches = []
 matchesNames = set()
 
 for suit in suitsDict:
-    for value in valuesDict:
-        template = np.concatenate([valuesDict[value], suitsDict[suit]])
-        # screen.showImage(template)
-        upsideDownTemplate = np.rot90(template, 2)
-        matches = templateMatching.getMatches(areaToScan, template, matchingThreshold)
-        cardName = value + ' ' + suit;
-        numMatches = len(matches)
-        if numMatches > 0:
-            matchesNames.add(cardName + ' ' + str(numMatches));
-        matchesUpsideDown = templateMatching.getMatches(areaToScan, upsideDownTemplate, matchingThreshold)
-        numMatches = len(matchesUpsideDown)
-        if numMatches > 0:
-            matchesNames.add(cardName + ' ' + str(numMatches));
-        allMatches = allMatches + matches + matchesUpsideDown
-        
+    suitTemplate = suitsDict[suit]
+    suitMatches = templateMatching.getMatches(areaToScan, suitTemplate, matchingThreshold)
+    suitMatches = map(lambda match: {'topLeft': match, 'name': suit}, suitMatches)
+    
+    # We found a suit, now find the associated value above it
+    allValueMatches = []
+    for suitMatch in suitMatches:
+        suitMatchTopLeft = suitMatch['topLeft']
+        for value in valuesDict:
+            valueTemplate = valuesDict[value]
+            topLeft = (suitMatchTopLeft[0] - 5L, suitMatchTopLeft[1] - 50L)
+            bottomRight = (suitMatchTopLeft[0] + 50L, suitMatchTopLeft[1] + 5L)
+            searchArea = areaToScan[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]]
+            valueMatches = templateMatching.getMatches(searchArea, valueTemplate, matchingThreshold)
+            valueMatches = map(lambda match: {'topLeft': (topLeft[0] + match[0], topLeft[1] + match[1]), 'name': value}, valueMatches)
+            if (len(valueMatches) > 0):
+                matchesNames.add(value + ' ' + suit)
+            allValueMatches = allValueMatches + valueMatches
+
+    upsideDownSuitTemplate = np.rot90(suitTemplate, 2)
+    matchesUpsideDown = templateMatching.getMatches(areaToScan, upsideDownSuitTemplate, matchingThreshold)
+    matchesUpsideDown = map(lambda match: {'topLeft': match, 'name': suit}, matchesUpsideDown)
+    
+    # todo: We found a suit upside down, now find the associated value below it
+    
+    allMatches = allMatches + suitMatches + allValueMatches + matchesUpsideDown
+
 if len(allMatches) != 0:
-    image = templateMatching.highlightRois(areaToScan, allMatches, template.shape[::-1])
+    image = templateMatching.highlightRois(areaToScan, allMatches, (30L, 30L))
     screen.showImage(image)
     screen.showCards(matchesNames, valuesDict, suitsDict)
