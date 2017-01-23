@@ -5,7 +5,7 @@ import os.path as path
 import templateMatching
 import screen
 
-matchingThreshold = 0.85
+matchingThreshold = 0.90
 areaToScanTopLeft = (213L, 111L)
 areaToScanBottomRight = (1335L, 740L)
 
@@ -32,24 +32,36 @@ def getImage(name):
     filename = name + '.png';
     image = cv2.imread(path.join('images', filename))
     image = screen.imageToBw(image)
-    return {'image': image, 'name': name}
+    return image
 
-suits = map(getImage, suits)
-values = map(getImage, values)
-allMatches = []
+suitsDict = {}
+for suit in suits:
+    suitsDict[suit] = getImage(suit)
 
+valuesDict = {}
 for value in values:
-    for suit in suits:
-        template = np.concatenate([value['image'], suit['image']])
+    valuesDict[value] = getImage(value)
+        
+allMatches = []
+matchesNames = set()
+
+for suit in suitsDict:
+    for value in valuesDict:
+        template = np.concatenate([valuesDict[value], suitsDict[suit]])
         # screen.showImage(template)
         upsideDownTemplate = np.rot90(template, 2)
         matches = templateMatching.getMatches(areaToScan, template, matchingThreshold)
-        # print value['name'], suit['name'], len(matches)
+        cardName = value + ' ' + suit;
+        numMatches = len(matches)
+        if numMatches > 0:
+            matchesNames.add(cardName + ' ' + str(numMatches));
         matchesUpsideDown = templateMatching.getMatches(areaToScan, upsideDownTemplate, matchingThreshold)
+        numMatches = len(matchesUpsideDown)
+        if numMatches > 0:
+            matchesNames.add(cardName + ' ' + str(numMatches));
         allMatches = allMatches + matches + matchesUpsideDown
-    
+        
 if len(allMatches) != 0:
     image = templateMatching.highlightRois(areaToScan, allMatches, template.shape[::-1])
     screen.showImage(image)
-            
-
+    screen.showCards(matchesNames, valuesDict, suitsDict)
