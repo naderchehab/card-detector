@@ -1,12 +1,14 @@
 import sys
 import cv2
 import numpy as np
+import screen
 
 # find all matches of the template in the image
 # returns an array of (x, y) coordinate of the top/left point of each match
-def getMatches(image, template):
+def getMatches(image, template, threshold):
     result = cv2.matchTemplate(image, template, cv2.TM_CCOEFF_NORMED)
-    loc = np.where( result >= 0.90)
+    # screen.showImage(result)
+    loc = np.where( result >= threshold)
     results = zip(*loc[::-1])
     return results
     
@@ -29,7 +31,3 @@ def highlightRois(image, roisCoords, roiWidthHeight):
         image[roi['topLeft'][1]:roi['bottomRight'][1], roi['topLeft'][0]:roi['bottomRight'][0]] = roi['area']
         
     return image
-    
-def showImage(image):
-    cv2.imshow("result", image)
-    cv2.waitKey(0)

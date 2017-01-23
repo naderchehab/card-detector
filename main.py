@@ -3,12 +3,22 @@ import cv2
 import numpy as np
 import os.path as path
 import templateMatching
+import screen
 
-screenCap = cv2.imread("tests/bb1.jpg", cv2.IMREAD_GRAYSCALE)
+matchingThreshold = 0.85
+areaToScanTopLeft = (213L, 111L)
+areaToScanBottomRight = (1335L, 740L)
 
-topLeft = (475L, 111L)
-bottomRight = (1072L, 730L)
-areaToScan = screenCap[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]]
+# image = screen.capture();
+
+# for testing
+image = cv2.imread(path.join('tests', 'test5.png'))
+
+image = screen.imageToBw(image)
+
+areaToScan = image[areaToScanTopLeft[1]:areaToScanBottomRight[1], areaToScanTopLeft[0]:areaToScanBottomRight[0]]
+
+# screen.showImage(areaToScan)
 
 # things we're looking for
 suits = ['heart', 'spade', 'diamond', 'club']
@@ -16,30 +26,30 @@ values = ['two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'
 
 # for testing
 # suits = ['spade']
-# values = ['three']
+# values = ['nine']
 
 def getImage(name):
     filename = name + '.png';
-    image = cv2.imread(path.join("images", filename), cv2.IMREAD_GRAYSCALE)
+    image = cv2.imread(path.join('images', filename))
+    image = screen.imageToBw(image)
     return {'image': image, 'name': name}
 
 suits = map(getImage, suits)
 values = map(getImage, values)
-whitespace = np.full((1L, len(suits[0]['image'][0])), 255L, dtype = "uint8")
 allMatches = []
 
 for value in values:
     for suit in suits:
-        template = np.concatenate([value['image'], whitespace, suit['image']])
+        template = np.concatenate([value['image'], suit['image']])
+        # screen.showImage(template)
         upsideDownTemplate = np.rot90(template, 2)
-        
-        matches = templateMatching.getMatches(areaToScan, template)
+        matches = templateMatching.getMatches(areaToScan, template, matchingThreshold)
         # print value['name'], suit['name'], len(matches)
-        matchesUpsideDown = templateMatching.getMatches(areaToScan, upsideDownTemplate)
+        matchesUpsideDown = templateMatching.getMatches(areaToScan, upsideDownTemplate, matchingThreshold)
         allMatches = allMatches + matches + matchesUpsideDown
     
 if len(allMatches) != 0:
     image = templateMatching.highlightRois(areaToScan, allMatches, template.shape[::-1])
-    templateMatching.showImage(image)
+    screen.showImage(image)
             
 
