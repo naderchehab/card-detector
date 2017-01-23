@@ -36,9 +36,7 @@ for value in values:
         matches = templateMatching.getMatches(areaToScan, template)
         # print value['name'], suit['name'], len(matches)
         matchesUpsideDown = templateMatching.getMatches(areaToScan, upsideDownTemplate)
-        allMatches = allMatches + matches
-        if matchesUpsideDown:
-            allMatches = allMatches + matchesUpsideDown
+        allMatches = allMatches + matches + matchesUpsideDown
     
 if len(allMatches) != 0:
     image = templateMatching.highlightRois(areaToScan, allMatches, template.shape[::-1])
