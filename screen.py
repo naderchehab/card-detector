@@ -4,7 +4,6 @@ import cv2
 
 def imageToBw(image):
     imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # (thresh, imageBw) = cv2.threshold(imageGray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     return imageGray
 
 def capture():
@@ -14,7 +13,7 @@ def capture():
 
 def showImage(image):
     cv2.imshow('result', image)
-    cv2.waitKey(0)
+    cv2.waitKey(1) # for testing use 0
 
 def showCards(cardNames, valuesDict, suitsDict):
     played = np.full((100L, 1800L), 255L, dtype = 'uint8')
